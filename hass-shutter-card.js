@@ -103,14 +103,17 @@ class ShutterCard extends HTMLElement {
           _this.isUpdating = false;
             
           let newPosition = event.pageY - _this.getPictureTop(picture);
+
+          const minPos = entity.minPosition || _this.minPosition;
+          const maxPos = entity.maxPosition || _this.maxPosition;
           
-          if (newPosition < _this.minPosition)
-            newPosition = _this.minPosition;
+          if (newPosition < minPos)
+            newPosition = minPos;
           
-          if (newPosition > _this.maxPosition)
-            newPosition = _this.maxPosition;
+          if (newPosition > maxPos)
+            newPosition = maxPos;
           
-          let percentagePosition = (newPosition - _this.minPosition) * 100 / (_this.maxPosition - _this.minPosition);
+          let percentagePosition = (newPosition - minPos) * 100 / (maxPos - minPos);
           
           if (invertPercentage) {
             _this.updateShutterPosition(hass, entityId, percentagePosition);
@@ -217,9 +220,9 @@ class ShutterCard extends HTMLElement {
         })
 
         if (invertPercentage) {
-          _this.setPickerPositionPercentage(currentPosition, picker, slide);
+          _this.setPickerPositionPercentage(currentPosition, picker, slide, entity);
         } else {
-          _this.setPickerPositionPercentage(100 - currentPosition, picker, slide);
+          _this.setPickerPositionPercentage(100 - currentPosition, picker, slide, entity);
         }
       }
     });
@@ -239,21 +242,24 @@ class ShutterCard extends HTMLElement {
       return pictureTop;
   }
   
-  setPickerPositionPercentage(position, picker, slide) {
-    let realPosition = (this.maxPosition - this.minPosition) * position / 100 + this.minPosition;
+  setPickerPositionPercentage(position, picker, slide, entity) {
+    let realPosition = ((entity.maxPosition || this.maxPosition) - (entity.minPosition || this.minPosition)) * position / 100 + (entity.minPosition || this.minPosition);
   
-    this.setPickerPosition(realPosition, picker, slide);
+    this.setPickerPosition(realPosition, picker, slide, entity);
   }
   
-  setPickerPosition(position, picker, slide) {
-    if (position < this.minPosition)
-      position = this.minPosition;
+  setPickerPosition(position, picker, slide, entity) {
+    const minPos = entity.minPosition || this.minPosition;
+    const maxPos = entity.maxPosition || this.maxPosition;
+
+    if (position < minPos)
+      position = minPos;
   
-    if (position > this.maxPosition)
-      position = this.maxPosition;
+    if (position > maxPos)
+      position = maxPos;
   
     picker.style.top = position + 'px';
-    slide.style.height = position - this.minPosition + 'px';
+    slide.style.height = position - minPos + 'px';
   }
   
   updateShutterPosition(hass, entityId, position) {
